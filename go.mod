@@ -3,6 +3,7 @@ module Andrew_Janedy_Comp426_001_Project_2.1
 go 1.21
 
 require (
+	github.com/co0p/tankism v0.0.0-20230903205805-1ebc2e88a661
 	github.com/hajimehoshi/ebiten/v2 v2.6.2
 	github.com/lafriks/go-tiled v0.12.0
 )

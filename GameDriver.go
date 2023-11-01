@@ -1,77 +1,91 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/lafriks/go-tiled"
-	"os"
 )
 
-const mapPath = "gameMap.tmx" // Path to your Tiled Map.
-type mapGame struct {
-	Level    *tiled.Map
-	tileHash map[uint32]*ebiten.Image
-}
+//go:embed assets/*
+var EmbeddedAssets embed.FS
 
-func (m mapGame) Update() error {
-	return nil
-}
-func (m mapGame) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	//TODO implement me
-	return outsideWidth, outsideHeight
-}
+const mapPath = "gameMap.tmx"
+
+const (
+	DUCK_FRAME_WIDTH = 100
+	DUCK_HEIGHT      = 92
+	FRAME_COUNT      = 4
+	FRAMES_PER_SHEET = 2
+)
+
+const (
+	RIGHT = iota
+	LEFT
+	UP
+	DOWN
+)
 
 func main() {
-	// Parse .tmx file.
 	gameMap, err := tiled.LoadFile(mapPath)
 	windowWidth := gameMap.Width * gameMap.TileWidth
 	windowHeight := gameMap.Height * gameMap.TileHeight
+
 	ebiten.SetWindowSize(windowWidth, windowHeight)
 	if err != nil {
 		fmt.Printf("error parsing map: %s", err.Error())
-		os.Exit(2)
 	}
-	ebitenImageMap := makeEbiteImagesFromMap(*gameMap)
-	oneLevelGame := mapGame{
+	ebitenImageMap := makeEbitenImagesFromMap(*gameMap)
+
+	barrierTilesArray := make([]BarrierTile, 0, 56)
+
+	for tileY := 0; tileY < gameMap.Height; tileY += 1 {
+		for tileX := 0; tileX < gameMap.Width; tileX += 1 {
+			TileXpos := float64(gameMap.TileWidth * tileX)
+			TileYpos := float64(gameMap.TileHeight * tileY)
+			TileHeight := float64(gameMap.TileHeight)
+			TileWidth := float64(gameMap.TileWidth)
+
+			if gameMap.Layers[0].Tiles[tileY*gameMap.Width+tileX].ID == 0 {
+				barrierTilesArray = append(barrierTilesArray, BarrierTile{
+					barrierTile: *gameMap.Layers[0].Tiles[tileY*gameMap.Width+tileX],
+					xLoc:        int(TileXpos),
+					yLoc:        int(TileYpos),
+					height:      int(TileHeight),
+					width:       int(TileWidth),
+				})
+			}
+		}
+	}
+
+	for i, _ := range barrierTilesArray {
+		fmt.Printf("xLoc: %d  yLoc: %d  tile#: %d\n",
+			barrierTilesArray[i].xLoc,
+			barrierTilesArray[i].yLoc,
+			i)
+	}
+
+	duckAnimation := LoadEmbeddedImage("", "jankyDuck6.png")
+	myPlayer := PlayerSprite{spriteSheet: duckAnimation,
+		xLoc: windowWidth / 2,
+		yLoc: windowHeight / 2,
+	}
+	gatorAnimation := LoadEmbeddedImage("", "jankyGator.png")
+	enemyGator := GatorSprite{spriteSheet: gatorAnimation,
+		xLoc: windowWidth + 100,
+		yLoc: windowHeight - 100}
+
+	myMap := GameMap{
 		Level:    gameMap,
 		tileHash: ebitenImageMap,
 	}
-	fmt.Println("tilesets:", gameMap.Tilesets[0].Tiles)
-	//fmt.Println("layers:", gameMap.Layers[0].Tiles)
-	fmt.Print("type:", fmt.Sprintf("%T", gameMap.Layers[0].Tiles[0]))
-	err = ebiten.RunGame(&oneLevelGame)
-	if err != nil {
-		fmt.Println("Couldn't run game:", err)
+	thisGame := duckyGame{
+		player:            myPlayer,
+		gator:             enemyGator,
+		waterMap:          myMap,
+		barrierTiles:      barrierTilesArray,
+		collisionDetected: false,
 	}
-}
-func makeEbiteImagesFromMap(tiledMap tiled.Map) map[uint32]*ebiten.Image {
-	idToImage := make(map[uint32]*ebiten.Image)
-	for _, tile := range tiledMap.Tilesets[0].Tiles {
-		ebitenImageTile, _, err :=
-			ebitenutil.NewImageFromFile(tile.Image.Source)
-		if err != nil {
-			fmt.Println("Error loading tile image:",
-				tile.Image.Source, err)
-		}
-		idToImage[tile.ID] = ebitenImageTile
-	}
-	return idToImage
-}
-
-func (game *mapGame) Draw(screen *ebiten.Image) {
-	drawOptions := ebiten.DrawImageOptions{}
-	for tileY := 0; tileY < game.Level.Height; tileY += 1 {
-		for tileX := 0; tileX < game.Level.Width; tileX += 1 {
-			drawOptions.GeoM.Reset()
-			TileXpos := float64(game.Level.TileWidth * tileX)
-			TileYpos := float64(game.Level.TileHeight * tileY)
-			drawOptions.GeoM.Translate(TileXpos, TileYpos)
-			tileToDraw :=
-				game.Level.Layers[0].Tiles[tileY*game.Level.Width+tileX]
-			ebitenTileToDraw := game.tileHash[tileToDraw.ID]
-			screen.DrawImage(ebitenTileToDraw,
-				&drawOptions)
-		}
-	}
+	ebiten.SetWindowTitle("Animated Sprite")
+	ebiten.RunGame(&thisGame)
 }
