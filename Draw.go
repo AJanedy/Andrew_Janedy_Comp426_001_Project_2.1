@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"image"
+	"strconv"
 )
 
 func (game duckyGame) Draw(screen *ebiten.Image) {
@@ -20,17 +21,42 @@ func (game duckyGame) Draw(screen *ebiten.Image) {
 				&drawOptions)
 		}
 	}
-	//yLoc := 300.0 //when you add up and down move this to the player sprite and update it in update
 	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Reset()
-	op.GeoM.Translate(float64(game.player.xLoc), float64(game.player.yLoc))
-	screen.DrawImage(game.player.spriteSheet.SubImage(image.Rect(game.player.frame*DUCK_FRAME_WIDTH,
-		game.player.direction*DUCK_HEIGHT,
-		game.player.frame*DUCK_FRAME_WIDTH+DUCK_FRAME_WIDTH,
-		game.player.direction*DUCK_HEIGHT+DUCK_HEIGHT)).(*ebiten.Image), op)
-	op.GeoM.Reset()
-	op.GeoM.Translate(float64(game.gator.xLoc), float64(game.gator.yLoc))
 
+	if !game.gator1.gatorFed && !game.gator2.gatorFed {
+		op.GeoM.Reset()
+		op.GeoM.Translate(float64(game.gator1.xLoc), float64(game.gator1.yLoc))
+		screen.DrawImage(game.gator1.hungryGator, op)
+		op.GeoM.Reset()
+		op.GeoM.Translate(float64(game.gator2.xLoc), float64(game.gator2.yLoc))
+		screen.DrawImage(game.gator2.hungryGator, op)
+		op.GeoM.Reset()
+		op.GeoM.Translate(float64(game.player.xLoc), float64(game.player.yLoc))
+		screen.DrawImage(game.player.spriteSheet.SubImage(image.Rect(game.player.frame*DUCK_FRAME_WIDTH,
+			game.player.direction*DUCK_HEIGHT,
+			game.player.frame*DUCK_FRAME_WIDTH+DUCK_FRAME_WIDTH,
+			game.player.direction*DUCK_HEIGHT+DUCK_HEIGHT)).(*ebiten.Image), op)
+	} else if game.gator1.gatorFed {
+		op.GeoM.Reset()
+		op.GeoM.Translate(float64(game.gator1.xLoc), float64(game.gator1.yLoc))
+		screen.DrawImage(game.gator1.happyGator, op)
+		op.GeoM.Reset()
+		op.GeoM.Translate(float64(game.gator2.xLoc), float64(game.gator2.yLoc))
+		screen.DrawImage(game.gator2.hungryGator, op)
+	} else if game.gator2.gatorFed {
+		op.GeoM.Reset()
+		op.GeoM.Translate(float64(game.gator1.xLoc), float64(game.gator1.yLoc))
+		screen.DrawImage(game.gator1.hungryGator, op)
+		op.GeoM.Reset()
+		op.GeoM.Translate(float64(game.gator2.xLoc), float64(game.gator2.yLoc))
+		screen.DrawImage(game.gator2.happyGator, op)
+	}
+	for _, breadCrumb := range game.breadCrumbs {
+		op.GeoM.Reset()
+		op.GeoM.Translate(float64(breadCrumb.xLoc), float64(breadCrumb.yLoc))
+		screen.DrawImage(breadCrumb.bread, op)
+	}
+	DrawCenteredText(screen, game.typeface, "Score: "+strconv.Itoa(game.score), 500, 100)
 }
 
 func (game duckyGame) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {

@@ -6,7 +6,7 @@
    <image width="64" height="64" source="tiles/jankyRocks.png"/>
   </tile>
   <tile id="1">
-   <image width="64" height="64" source="tiles/grass_01_tile_64_01.png"/>
+   <image width="64" height="64" source="tiles/jankyRocks.png"/>
   </tile>
   <tile id="2">
    <image width="64" height="64" source="tiles/jankyWater4.png"/>

@@ -4,7 +4,13 @@ import (
 	"embed"
 	"fmt"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
 	"github.com/lafriks/go-tiled"
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/opentype"
+	"log"
+	"math/rand"
+	"time"
 )
 
 //go:embed assets/*
@@ -17,6 +23,7 @@ const (
 	DUCK_HEIGHT      = 92
 	FRAME_COUNT      = 4
 	FRAMES_PER_SHEET = 2
+	UPDATE_INTERVAL  = time.Second
 )
 
 const (
@@ -57,12 +64,14 @@ func main() {
 			}
 		}
 	}
-
-	for i, _ := range barrierTilesArray {
-		fmt.Printf("xLoc: %d  yLoc: %d  tile#: %d\n",
-			barrierTilesArray[i].xLoc,
-			barrierTilesArray[i].yLoc,
-			i)
+	breadPict := LoadEmbeddedImage("", "bread.png")
+	allBread := make([]BreadSprite, 0, 5)
+	for i := 0; i < cap(allBread); i++ {
+		allBread = append(allBread, BreadSprite{
+			bread: breadPict,
+			xLoc:  75 + rand.Intn(800),
+			yLoc:  75 + rand.Intn(800),
+		})
 	}
 
 	duckAnimation := LoadEmbeddedImage("", "jankyDuck6.png")
@@ -70,10 +79,36 @@ func main() {
 		xLoc: windowWidth / 2,
 		yLoc: windowHeight / 2,
 	}
-	gatorAnimation := LoadEmbeddedImage("", "jankyGator.png")
-	enemyGator := GatorSprite{spriteSheet: gatorAnimation,
-		xLoc: windowWidth + 100,
-		yLoc: windowHeight - 100}
+	gatorAnimation1 := LoadEmbeddedImage("", "jankyGator1.png")
+	gatorAnimation2 := LoadEmbeddedImage("", "jankyGator2.png")
+
+	enemyGator1 := GatorSprite{
+		hungryGator: gatorAnimation1,
+		happyGator:  gatorAnimation2,
+		xLoc:        windowWidth - 200,
+		yLoc:        windowHeight - 200,
+		gatorFed:    false,
+	}
+
+	enemyGator2 := GatorSprite{
+		hungryGator: gatorAnimation1,
+		happyGator:  gatorAnimation2,
+		xLoc:        windowWidth - 700,
+		yLoc:        windowHeight - 800,
+		gatorFed:    false,
+	}
+	tt, err := opentype.Parse(fonts.MPlus1pRegular_ttf)
+	if err != nil {
+		log.Fatal(err)
+	}
+	scoreFont, err := opentype.NewFace(tt, &opentype.FaceOptions{
+		Size:    24,
+		DPI:     72,
+		Hinting: font.HintingFull,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	myMap := GameMap{
 		Level:    gameMap,
@@ -81,11 +116,18 @@ func main() {
 	}
 	thisGame := duckyGame{
 		player:            myPlayer,
-		gator:             enemyGator,
+		score:             0,
+		gator1:            enemyGator1,
+		gator2:            enemyGator2,
 		waterMap:          myMap,
 		barrierTiles:      barrierTilesArray,
 		collisionDetected: false,
+		timerActive:       true,
+		running:           true,
+		breadCrumbs:       allBread,
+		breadSprite:       breadPict,
+		typeface:          scoreFont,
 	}
-	ebiten.SetWindowTitle("Animated Sprite")
+	ebiten.SetWindowTitle("Janky Duck Eat Bread but Don't Be Gator Snack...the Game!")
 	ebiten.RunGame(&thisGame)
 }

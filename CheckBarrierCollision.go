@@ -2,10 +2,9 @@ package main
 
 import (
 	"github.com/co0p/tankism/lib/collision"
-	_ "github.com/lafriks/go-tiled"
 )
 
-func CheckCollision(player PlayerSprite, barrier BarrierTile, game *duckyGame) bool {
+func CheckBarrierCollision(player PlayerSprite, barrier BarrierTile) bool {
 	playerBounds := collision.BoundingBox{
 		X:      float64(player.xLoc),
 		Y:      float64(player.yLoc),
@@ -18,7 +17,7 @@ func CheckCollision(player PlayerSprite, barrier BarrierTile, game *duckyGame) b
 		Width:  float64(barrier.width),
 		Height: float64(barrier.height),
 	}
-	if collision.AABBCollision(playerBounds, barrierBounds) && game.player.direction == RIGHT {
+	if collision.AABBCollision(playerBounds, barrierBounds) {
 		return true
 	}
 	return false
