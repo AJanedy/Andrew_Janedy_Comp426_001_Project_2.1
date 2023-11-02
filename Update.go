@@ -10,11 +10,12 @@ func (game *duckyGame) Update() error {
 	if game.running {
 
 		getPlayerInput(game)
-		gatorSpeed := 3
 
 		for i, _ := range game.barrierTiles {
 			if CheckBarrierCollision(game.player, game.barrierTiles[i]) {
 				game.collisionDetected = true
+				game.boinkSound.Rewind()
+				game.boinkSound.Play()
 			}
 		}
 		for i, _ := range game.breadCrumbs {
@@ -25,6 +26,8 @@ func (game *duckyGame) Update() error {
 					yLoc:  75 + rand.Intn(800),
 				}
 				game.score += 1
+				game.duckSound.Rewind()
+				game.duckSound.Play()
 			}
 		}
 		if CheckGatorCollision(game.player, game.gator1, game) {
@@ -43,23 +46,23 @@ func (game *duckyGame) Update() error {
 		}
 
 		if game.gator1.direction == RIGHT && game.gator1.xLoc < 805 {
-			game.gator1.xLoc += gatorSpeed
+			game.gator1.xLoc += game.gator1.gatorSpeed
 		} else if game.gator1.direction == LEFT && game.gator1.xLoc > 60 {
-			game.gator1.xLoc -= gatorSpeed
+			game.gator1.xLoc -= game.gator1.gatorSpeed
 		} else if game.gator1.direction == DOWN && game.gator1.yLoc < 770 {
-			game.gator1.yLoc += gatorSpeed
+			game.gator1.yLoc += game.gator1.gatorSpeed
 		} else if game.gator1.direction == UP && game.gator1.yLoc > 25 {
-			game.gator1.yLoc -= gatorSpeed
+			game.gator1.yLoc -= game.gator1.gatorSpeed
 		}
 
 		if game.gator2.direction == RIGHT && game.gator2.xLoc < 805 {
-			game.gator2.xLoc += gatorSpeed
+			game.gator2.xLoc += game.gator2.gatorSpeed
 		} else if game.gator2.direction == LEFT && game.gator2.xLoc > 60 {
-			game.gator2.xLoc -= gatorSpeed
+			game.gator2.xLoc -= game.gator2.gatorSpeed
 		} else if game.gator2.direction == DOWN && game.gator2.yLoc < 770 {
-			game.gator2.yLoc += gatorSpeed
+			game.gator2.yLoc += game.gator2.gatorSpeed
 		} else if game.gator2.direction == UP && game.gator2.yLoc > 25 {
-			game.gator2.yLoc -= gatorSpeed
+			game.gator2.yLoc -= game.gator2.gatorSpeed
 		}
 
 		game.player.frameDelay += 1
@@ -68,15 +71,47 @@ func (game *duckyGame) Update() error {
 			if game.player.frame >= FRAMES_PER_SHEET {
 				game.player.frame = 0
 			}
-			if game.player.direction == LEFT && !game.collisionDetected {
-				game.player.xLoc -= 8
-			} else if game.player.direction == RIGHT && !game.collisionDetected {
-				game.player.xLoc += 8
-			} else if game.player.direction == DOWN && !game.collisionDetected {
-				game.player.yLoc += 8
-			} else if game.player.direction == UP && !game.collisionDetected {
-				game.player.yLoc -= 8
+			if game.player.direction == LEFT {
+				if game.collisionDetected {
+					game.player.xLoc += 8
+					game.player.direction = RIGHT
+					game.collisionDetected = false
+				} else {
+					game.player.xLoc -= 8
+				}
+			} else if game.player.direction == RIGHT {
+				if game.collisionDetected {
+					game.player.xLoc -= 8
+					game.player.direction = LEFT
+					game.collisionDetected = false
+				} else {
+					game.player.xLoc += 8
+				}
+			} else if game.player.direction == DOWN {
+				if game.collisionDetected {
+					game.player.yLoc -= 8
+					game.player.direction = UP
+					game.collisionDetected = false
+				} else {
+					game.player.yLoc += 8
+				}
+			} else if game.player.direction == UP {
+				if game.collisionDetected {
+					game.player.yLoc += 8
+					game.player.direction = DOWN
+					game.collisionDetected = false
+				} else {
+					game.player.yLoc -= 8
+
+				}
 			}
+		}
+		if game.gator1.gatorFed || game.gator2.gatorFed {
+			game.gameOverSound.Rewind()
+			game.gameOverSound.Play()
+		}
+		if game.score > game.highscore {
+			SaveHighScore(game.score)
 		}
 	}
 	return nil

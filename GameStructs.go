@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/lafriks/go-tiled"
 	"golang.org/x/image/font"
 	"time"
@@ -31,6 +32,7 @@ type PlayerSprite struct {
 type duckyGame struct {
 	player            PlayerSprite
 	score             int
+	highscore         int
 	gator1            GatorSprite
 	gator2            GatorSprite
 	waterMap          GameMap
@@ -43,6 +45,9 @@ type duckyGame struct {
 	running           bool
 	breadCrumbs       []BreadSprite
 	typeface          font.Face
+	duckSound         *audio.Player
+	gameOverSound     *audio.Player
+	boinkSound        *audio.Player
 }
 
 type GatorSprite struct {
@@ -50,6 +55,7 @@ type GatorSprite struct {
 	happyGator  *ebiten.Image
 	xLoc        int
 	yLoc        int
+	gatorSpeed  int
 	gatorFed    bool
 	direction   int
 	frame       int

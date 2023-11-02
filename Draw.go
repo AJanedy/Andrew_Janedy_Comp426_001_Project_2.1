@@ -56,7 +56,8 @@ func (game duckyGame) Draw(screen *ebiten.Image) {
 		op.GeoM.Translate(float64(breadCrumb.xLoc), float64(breadCrumb.yLoc))
 		screen.DrawImage(breadCrumb.bread, op)
 	}
-	DrawCenteredText(screen, game.typeface, "Score: "+strconv.Itoa(game.score), 500, 100)
+	DrawCenteredText(screen, game.typeface, "High Score: "+strconv.Itoa(game.highscore), 200, 100)
+	DrawCenteredText(screen, game.typeface, "Score: "+strconv.Itoa(game.score), 800, 100)
 }
 
 func (game duckyGame) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
