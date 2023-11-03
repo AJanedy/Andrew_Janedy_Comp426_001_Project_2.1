@@ -1,0 +1,29 @@
+Andrew Janedy Comp426_001 Project2
+
+This project fulfills the requirements of:
+
+* A window no smaller than 500 x 500 pixels and no greater than 1500 x 1500 pixels
+* A tiled map that is 15 x 15 tiles
+* A barrier type tile
+* Two NPC sprites that move at random and animate on contact with the player sprite
+* An animated player sprite that has "different" animations for up down left and right
+    * The player sprite cannot move through barrier tiles (unless you find THE bug)
+    * The player sprite cannot pass through the NPC sprites (in fact the hitbox is pretty big so don't go near them)
+
+Additional attributes that were not required in the project specifications:
+
+* There are additional sprites that the player sprite can consume
+* Consuming bread sprites adds to a score counter
+* High score is monitored and displayed as well as the game score, game reads and writes from and to a high score file
+* There are also a small collection of game sounds
+
+
+All requirements of this project have been met
+
+Barrier is easily recognizable as there are only two tiles and you start the game moving through one
+
+NPC sprites are the big scary alligators.  Do not go near them, they can lunge kinda far
+
+Game tiles, alligator sprites, and player sprite were drawn, from scratch, by me, using MSPaint.
+
+
